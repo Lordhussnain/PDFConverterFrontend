@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { arrayMove } from '@dnd-kit/sortable';
-import { QueueItem, FileStatus } from '@/types';
+import { QueueItem, FileStatus, ConversionOptions } from '@/types';
 
 interface QueueState {
   files: QueueItem[];
@@ -9,6 +9,7 @@ interface QueueState {
   removeFile: (id: string) => void;
   reorderFiles: (activeId: string, overId: string) => void;
   updateFileFormat: (id: string, format: string) => void;
+  updateFileOptions: (id: string, options: Partial<ConversionOptions>) => void;
   clearQueue: () => void;
   startConversion: (fileIds: string[]) => string;
   updateFileProgress: (id: string, progress: number) => void;
@@ -27,7 +28,10 @@ const useQueueStore = create<QueueState>((set) => ({
         status: 'pending',
         progress: 0,
         options: {
-          targetFormat: 'DOCX', // Default format
+          targetFormat: 'DOCX',
+          ocr: false,
+          quality: 80,
+          pageRange: '',
         },
       }));
     // We only keep files that are pending, so the queue is cleared on new uploads
@@ -47,6 +51,13 @@ const useQueueStore = create<QueueState>((set) => ({
     files: state.files.map(file => 
       file.id === id 
         ? { ...file, options: { ...file.options, targetFormat: format } } 
+        : file
+    ),
+  })),
+  updateFileOptions: (id, newOptions) => set(state => ({
+    files: state.files.map(file =>
+      file.id === id
+        ? { ...file, options: { ...file.options, ...newOptions } }
         : file
     ),
   })),
