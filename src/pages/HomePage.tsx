@@ -20,6 +20,26 @@ const HomePage = () => {
   return (
     <main className="container mx-auto px-4 py-8">
       <div className="max-w-3xl mx-auto">
+        <div className="text-center mb-12">
+          <motion.h1 
+            className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            The Ultimate PDF Converter
+          </motion.h1>
+          <motion.p 
+            className="text-lg text-muted-foreground max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            Quickly and easily convert your PDF files to a variety of formats.
+            Secure, fast, and free.
+          </motion.p>
+        </div>
+
         <Uploader />
         <QueueList />
         <AnimatePresence>
