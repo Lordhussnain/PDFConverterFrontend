@@ -1,16 +1,18 @@
+import { useNavigate } from 'react-router-dom';
 import Uploader from '@/components/Uploader';
 import QueueList from '@/components/QueueList';
 import { Button } from '@/components/ui/button';
 import useQueueStore from '@/stores/queueStore';
 
 const HomePage = () => {
-  const files = useQueueStore((state) => state.files);
-  const clearQueue = useQueueStore((state) => state.clearQueue);
+  const navigate = useNavigate();
+  const files = useQueueStore((state) => state.files.filter(f => f.status === 'pending'));
+  const { clearQueue, startConversion } = useQueueStore();
 
   const handleConvert = () => {
-    // This is where we will initiate the conversion process in the next step.
-    console.log('Starting conversion for:', files);
-    alert('Conversion logic will be implemented next!');
+    const fileIds = files.map(f => f.id);
+    const jobId = startConversion(fileIds);
+    navigate(`/job/${jobId}`);
   };
 
   return (

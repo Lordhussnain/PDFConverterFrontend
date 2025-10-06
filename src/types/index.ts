@@ -13,6 +13,7 @@ export interface QueueItem {
   status: FileStatus;
   progress: number; // 0-100
   options: ConversionOptions;
+  jobId?: string;
   result?: {
     url: string;
     size: number;

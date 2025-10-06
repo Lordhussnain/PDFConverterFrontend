@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
+import JobPage from './pages/JobPage';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 
@@ -11,7 +12,7 @@ function App() {
         <div className="flex-grow">
           <Routes>
             <Route path="/" element={<HomePage />} />
-            {/* We will add the /job/:jobId route in a future step */}
+            <Route path="/job/:jobId" element={<JobPage />} />
           </Routes>
         </div>
         <Footer />
