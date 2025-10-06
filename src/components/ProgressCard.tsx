@@ -3,12 +3,21 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { QueueItem } from '@/types';
+import useQueueStore from '@/stores/queueStore';
+import { toast } from "sonner";
 
 interface ProgressCardProps {
   item: QueueItem;
 }
 
 const ProgressCard = ({ item }: ProgressCardProps) => {
+  const { retryConversion } = useQueueStore();
+
+  const handleRetry = () => {
+    retryConversion(item.id);
+    toast.info(`Retrying conversion for ${item.file.name}.`);
+  };
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -56,7 +65,7 @@ const ProgressCard = ({ item }: ProgressCardProps) => {
           </Button>
         )}
         {item.status === 'failed' && (
-          <Button variant="outline">Retry</Button>
+          <Button variant="outline" onClick={handleRetry}>Retry</Button>
         )}
       </CardContent>
     </Card>

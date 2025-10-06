@@ -15,6 +15,7 @@ interface QueueState {
   updateFileProgress: (id: string, progress: number) => void;
   updateFileStatus: (id: string, status: FileStatus) => void;
   setConversionResult: (id: string, result: { url: string; size: number }) => void;
+  retryConversion: (id: string) => void;
 }
 
 const useQueueStore = create<QueueState>((set) => ({
@@ -88,6 +89,13 @@ const useQueueStore = create<QueueState>((set) => ({
   setConversionResult: (id, result) => set(state => ({
     files: state.files.map(file =>
       file.id === id ? { ...file, result, status: 'completed', progress: 100 } : file
+    ),
+  })),
+  retryConversion: (id) => set(state => ({
+    files: state.files.map(file =>
+      file.id === id
+        ? { ...file, status: 'uploading', progress: 0, result: undefined }
+        : file
     ),
   })),
 }));
