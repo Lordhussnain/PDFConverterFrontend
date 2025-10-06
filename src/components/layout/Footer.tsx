@@ -15,6 +15,12 @@ const Footer = () => {
             <p className="text-muted-foreground text-sm max-w-xs">
               The simplest way to convert your PDF files. Fast, secure, and free for everyone.
             </p>
+            <div className="flex items-center gap-4 mt-4">
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Twitter className="h-5 w-5" /></a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Facebook className="h-5 w-5" /></a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Linkedin className="h-5 w-5" /></a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Github className="h-5 w-5" /></a>
+            </div>
           </div>
 
           {/* Links Section */}
@@ -57,14 +63,8 @@ const Footer = () => {
 
         <div className="border-t my-8"></div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+        <div className="text-center text-sm text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} PDF Converter. All rights reserved.</p>
-          <div className="flex items-center gap-4">
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Twitter className="h-5 w-5" /></a>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Facebook className="h-5 w-5" /></a>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Linkedin className="h-5 w-5" /></a>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Github className="h-5 w-5" /></a>
-          </div>
         </div>
       </div>
     </footer>
