@@ -8,6 +8,7 @@ import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
+import Newsletter from './components/layout/Newsletter';
 import { Toaster } from "@/components/ui/sonner"
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
             <Route path="/contact" element={<ContactPage />} />
           </Routes>
         </div>
+        <Newsletter />
         <Footer />
         <Toaster richColors />
       </div>
