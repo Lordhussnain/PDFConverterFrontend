@@ -73,7 +73,7 @@ const JobPage = () => {
         <motion.h1 variants={itemVariants} className="text-2xl font-bold mb-2">Your Conversion is in Progress</motion.h1>
         <motion.p variants={itemVariants} className="text-muted-foreground mb-6">
           You can safely close this tab. We'll keep converting your files in the background.
-        </p>
+        </motion.p>
         <motion.div
           className="space-y-4"
           variants={containerVariants}
