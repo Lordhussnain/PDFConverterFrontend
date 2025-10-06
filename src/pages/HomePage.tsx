@@ -7,7 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const files = useQueueStore((state) => state.files.filter(f => f.status === 'pending'));
+  const allFiles = useQueueStore((state) => state.files);
+  const files = allFiles.filter(f => f.status === 'pending');
   const { clearQueue, startConversion } = useQueueStore();
 
   const handleConvert = () => {

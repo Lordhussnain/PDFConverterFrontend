@@ -17,7 +17,8 @@ import DraggableFileCard from './DraggableFileCard';
 import { AnimatePresence } from 'framer-motion';
 
 const QueueList = () => {
-  const files = useQueueStore((state) => state.files.filter(f => f.status === 'pending'));
+  const allFiles = useQueueStore((state) => state.files);
+  const files = allFiles.filter(f => f.status === 'pending');
   const reorderFiles = useQueueStore((state) => state.reorderFiles);
 
   const sensors = useSensors(
