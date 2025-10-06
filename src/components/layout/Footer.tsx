@@ -4,7 +4,7 @@ import { FileText, Twitter, Facebook, Linkedin, Github } from 'lucide-react';
 const Footer = () => {
   return (
     <footer className="border-t bg-background">
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Branding Section */}
           <div className="lg:col-span-4 mb-6 lg:mb-0">
@@ -61,7 +61,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t my-8"></div>
+        <div className="border-t my-6"></div>
 
         <div className="text-center text-sm text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} PDF Converter. All rights reserved.</p>
