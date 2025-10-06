@@ -10,6 +10,10 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import Newsletter from './components/layout/Newsletter';
 import { Toaster } from "@/components/ui/sonner"
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
+import BlogPage from './pages/BlogPage';
+import CareersPage from './pages/CareersPage';
 
 function App() {
   return (
@@ -25,6 +29,10 @@ function App() {
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermsOfServicePage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/careers" element={<CareersPage />} />
           </Routes>
         </div>
         <Newsletter />

@@ -38,22 +38,22 @@ const Footer = () => {
               <h3 className="font-semibold mb-4 tracking-wide">Company</h3>
               <ul className="space-y-3 text-muted-foreground text-sm">
                 <li><Link to="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Careers</Link></li>
+                <li><Link to="/careers" className="hover:text-primary transition-colors">Careers</Link></li>
                 <li><Link to="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold mb-4 tracking-wide">Legal</h3>
               <ul className="space-y-3 text-muted-foreground text-sm">
-                <li><Link to="/" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+                <li><Link to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
                 <li><Link to="/" className="hover:text-primary transition-colors">Cookie Policy</Link></li>
               </ul>
             </div>
              <div>
               <h3 className="font-semibold mb-4 tracking-wide">Resources</h3>
               <ul className="space-y-3 text-muted-foreground text-sm">
-                <li><Link to="/" className="hover:text-primary transition-colors">Blog</Link></li>
+                <li><Link to="/blog" className="hover:text-primary transition-colors">Blog</Link></li>
                 <li><Link to="/" className="hover:text-primary transition-colors">API Docs</Link></li>
                 <li><Link to="/" className="hover:text-primary transition-colors">Help Center</Link></li>
               </ul>
