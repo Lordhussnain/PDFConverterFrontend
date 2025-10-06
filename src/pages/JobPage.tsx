@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from "sonner";
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -67,6 +69,34 @@ const JobPage = () => {
   const completedFiles = files.filter(f => f.status === 'completed');
   const isJobDone = files.every(f => f.status === 'completed' || f.status === 'failed');
 
+  const handleDownloadAll = async () => {
+    if (completedFiles.length === 0) return;
+
+    const toastId = toast.loading("Creating your ZIP file...");
+
+    try {
+      const zip = new JSZip();
+
+      // Since the conversion is simulated, we'll create dummy files.
+      // In a real app, you would fetch the content from item.result.url.
+      for (const item of completedFiles) {
+        const originalFileName = item.file.name.split('.').slice(0, -1).join('.');
+        const newExtension = item.options.targetFormat.toLowerCase();
+        const newFileName = `${originalFileName}.${newExtension}`;
+        const dummyContent = `This is the converted content for ${item.file.name}.`;
+        zip.file(newFileName, dummyContent);
+      }
+
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(content, `conversion-job-${jobId}.zip`);
+      
+      toast.success("ZIP file created successfully!", { id: toastId });
+    } catch (error) {
+      console.error("Failed to create ZIP file", error);
+      toast.error("Failed to create ZIP file.", { id: toastId });
+    }
+  };
+
   return (
     <main className="container mx-auto px-4 py-8">
       <motion.div
@@ -96,7 +126,7 @@ const JobPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: files.length * 0.1 + 0.5 }}
           >
-            <Button size="lg">
+            <Button size="lg" onClick={handleDownloadAll}>
               <Download className="mr-2 h-5 w-5" />
               Download All as ZIP ({completedFiles.length})
             </Button>
