@@ -3,8 +3,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { motion } from 'framer-motion';
+import { toast } from "sonner";
+import React from "react";
 
 const ContactPage = () => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    toast.success("Message Sent!", {
+      description: "Thanks for reaching out. We'll get back to you soon.",
+    });
+    (e.target as HTMLFormElement).reset();
+  };
+
   return (
     <main className="container mx-auto px-4 py-12">
       <motion.div 
@@ -25,20 +35,20 @@ const ContactPage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
       >
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" placeholder="Your Name" />
+              <Input id="name" placeholder="Your Name" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="your@email.com" />
+              <Input id="email" type="email" placeholder="your@email.com" required />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="message">Message</Label>
-            <Textarea id="message" placeholder="Your message..." rows={6} />
+            <Textarea id="message" placeholder="Your message..." rows={6} required />
           </div>
           <Button type="submit" className="w-full" size="lg">Send Message</Button>
         </form>

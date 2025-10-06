@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { useDropzone, FileRejection } from 'react-dropzone';
 import useQueueStore from '@/stores/queueStore';
 import { UploadCloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { toast } from "sonner";
 
 const Uploader = () => {
   const addFiles = useQueueStore((state) => state.addFiles);
@@ -12,8 +13,17 @@ const Uploader = () => {
     addFiles(acceptedFiles);
   }, [addFiles]);
 
+  const onDropRejected = useCallback((fileRejections: FileRejection[]) => {
+    fileRejections.forEach(({ file, errors }) => {
+      toast.error(`${file.name} was rejected.`, {
+        description: errors.map(e => e.message).join(', '),
+      });
+    });
+  }, []);
+
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
+    onDropRejected,
     accept: { 'application/pdf': ['.pdf'] },
     noClick: true,
     noKeyboard: true,

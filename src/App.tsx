@@ -8,6 +8,7 @@ import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
+import { Toaster } from "@/components/ui/sonner"
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           </Routes>
         </div>
         <Footer />
+        <Toaster richColors />
       </div>
     </Router>
   );

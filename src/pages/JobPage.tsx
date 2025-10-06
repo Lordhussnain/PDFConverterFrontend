@@ -5,6 +5,7 @@ import ProgressCard from '@/components/ProgressCard';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from "sonner";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -31,30 +32,34 @@ const JobPage = () => {
   const { updateFileProgress, updateFileStatus, setConversionResult } = useQueueStore();
 
   useEffect(() => {
-    const simulateProcess = (id: string) => {
+    const simulateProcess = (id: string, fileName: string) => {
       // 1. Simulate Upload
       const uploadInterval = setInterval(() => {
-        useQueueStore.getState().updateFileProgress(id, useQueueStore.getState().files.find(f => f.id === id)!.progress + 10);
-        if (useQueueStore.getState().files.find(f => f.id === id)!.progress >= 100) {
+        const currentFile = useQueueStore.getState().files.find(f => f.id === id);
+        if (!currentFile || currentFile.progress >= 100) {
           clearInterval(uploadInterval);
-          updateFileStatus(id, 'processing');
-
-          // 2. Simulate Processing
-          setTimeout(() => {
-            // Randomly fail 10% of the time
-            if (Math.random() < 0.1) {
-              updateFileStatus(id, 'failed');
-            } else {
-              setConversionResult(id, { url: '#', size: Math.random() * 1000000 });
-            }
-          }, 2000 + Math.random() * 3000); // Random processing time
+          if (currentFile && currentFile.progress >= 100) {
+            updateFileStatus(id, 'processing');
+            // 2. Simulate Processing
+            setTimeout(() => {
+              if (Math.random() < 0.1) {
+                updateFileStatus(id, 'failed');
+                toast.error(`Conversion failed for ${fileName}.`);
+              } else {
+                setConversionResult(id, { url: '#', size: Math.random() * 1000000 });
+                toast.success(`Successfully converted ${fileName}.`);
+              }
+            }, 2000 + Math.random() * 3000);
+          }
+          return;
         }
+        useQueueStore.getState().updateFileProgress(id, currentFile.progress + 10);
       }, 200);
     };
 
     files.forEach(file => {
       if (file.status === 'uploading' && file.progress === 0) {
-        simulateProcess(file.id);
+        simulateProcess(file.id, file.file.name);
       }
     });
   }, [jobId, files, updateFileProgress, updateFileStatus, setConversionResult]);
