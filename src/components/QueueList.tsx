@@ -14,6 +14,7 @@ import {
 } from '@dnd-kit/sortable';
 import useQueueStore from '@/stores/queueStore';
 import DraggableFileCard from './DraggableFileCard';
+import { AnimatePresence } from 'framer-motion';
 
 const QueueList = () => {
   const files = useQueueStore((state) => state.files.filter(f => f.status === 'pending'));
@@ -48,9 +49,11 @@ const QueueList = () => {
           items={files.map(f => f.id)}
           strategy={verticalListSortingStrategy}
         >
-          {files.map((item) => (
-            <DraggableFileCard key={item.id} item={item} />
-          ))}
+          <AnimatePresence>
+            {files.map((item) => (
+              <DraggableFileCard key={item.id} item={item} />
+            ))}
+          </AnimatePresence>
         </SortableContext>
       </div>
     </DndContext>

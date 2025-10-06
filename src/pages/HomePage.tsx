@@ -3,6 +3,7 @@ import Uploader from '@/components/Uploader';
 import QueueList from '@/components/QueueList';
 import { Button } from '@/components/ui/button';
 import useQueueStore from '@/stores/queueStore';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -20,16 +21,24 @@ const HomePage = () => {
       <div className="max-w-3xl mx-auto">
         <Uploader />
         <QueueList />
-        {files.length > 0 && (
-          <div className="mt-8 flex justify-end gap-4">
-            <Button variant="outline" onClick={clearQueue}>
-              Clear All
-            </Button>
-            <Button size="lg" onClick={handleConvert}>
-              Convert Now ({files.length})
-            </Button>
-          </div>
-        )}
+        <AnimatePresence>
+          {files.length > 0 && (
+            <motion.div
+              className="mt-8 flex justify-end gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Button variant="outline" onClick={clearQueue}>
+                Clear All
+              </Button>
+              <Button size="lg" onClick={handleConvert}>
+                Convert Now ({files.length})
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </main>
   );

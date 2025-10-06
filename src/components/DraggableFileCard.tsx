@@ -2,6 +2,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import FileCard from './FileCard';
 import { QueueItem } from '@/types';
+import { motion } from 'framer-motion';
 
 interface DraggableFileCardProps {
   item: QueueItem;
@@ -25,9 +26,18 @@ const DraggableFileCard = ({ item }: DraggableFileCardProps) => {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
+    <motion.div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      layout
+      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, x: -100, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.3, type: 'spring', stiffness: 300, damping: 30 }}
+    >
       <FileCard item={item} dragListeners={listeners} />
-    </div>
+    </motion.div>
   );
 };
 

@@ -4,6 +4,25 @@ import useQueueStore from '@/stores/queueStore';
 import ProgressCard from '@/components/ProgressCard';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+  },
+};
 
 const JobPage = () => {
   const { jobId } = useParams<{ jobId: string }>();
@@ -44,25 +63,40 @@ const JobPage = () => {
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold mb-2">Your Conversion is in Progress</h1>
-        <p className="text-muted-foreground mb-6">
+      <motion.div
+        className="max-w-3xl mx-auto"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        <motion.h1 variants={itemVariants} className="text-2xl font-bold mb-2">Your Conversion is in Progress</motion.h1>
+        <motion.p variants={itemVariants} className="text-muted-foreground mb-6">
           You can safely close this tab. We'll keep converting your files in the background.
-        </p>
-        <div className="space-y-4">
+        </motion.p>
+        <motion.div
+          className="space-y-4"
+          variants={containerVariants}
+        >
           {files.map(item => (
-            <ProgressCard key={item.id} item={item} />
+            <motion.div key={item.id} variants={itemVariants}>
+              <ProgressCard item={item} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
         {isJobDone && completedFiles.length > 0 && (
-          <div className="mt-8 flex justify-end">
+          <motion.div
+            className="mt-8 flex justify-end"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: files.length * 0.1 + 0.5 }}
+          >
             <Button size="lg">
               <Download className="mr-2 h-5 w-5" />
               Download All as ZIP ({completedFiles.length})
             </Button>
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </main>
   );
 };
