@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
+import { arrayMove } from '@dnd-kit/sortable';
 import { QueueItem, FileStatus } from '@/types';
 
 interface QueueState {
   files: QueueItem[];
   addFiles: (files: File[]) => void;
   removeFile: (id: string) => void;
+  reorderFiles: (activeId: string, overId: string) => void;
   updateFileFormat: (id: string, format: string) => void;
   clearQueue: () => void;
   startConversion: (fileIds: string[]) => string;
@@ -35,6 +37,12 @@ const useQueueStore = create<QueueState>((set) => ({
   removeFile: (id) => set((state) => ({
     files: state.files.filter(file => file.id !== id),
   })),
+  reorderFiles: (activeId, overId) => set(state => {
+    const oldIndex = state.files.findIndex(f => f.id === activeId);
+    const newIndex = state.files.findIndex(f => f.id === overId);
+    if (oldIndex === -1 || newIndex === -1) return state;
+    return { files: arrayMove(state.files, oldIndex, newIndex) };
+  }),
   updateFileFormat: (id, format) => set(state => ({
     files: state.files.map(file => 
       file.id === id 

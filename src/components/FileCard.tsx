@@ -1,4 +1,4 @@
-import { File, X } from 'lucide-react';
+import { File, X, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { QueueItem } from '@/types';
@@ -13,11 +13,12 @@ import {
 
 interface FileCardProps {
   item: QueueItem;
+  dragListeners?: Record<string, any>;
 }
 
 const supportedFormats = ["DOCX", "PPTX", "JPG", "TXT", "EPUB"];
 
-const FileCard = ({ item }: FileCardProps) => {
+const FileCard = ({ item, dragListeners }: FileCardProps) => {
   const { removeFile, updateFileFormat } = useQueueStore();
 
   const formatFileSize = (bytes: number) => {
@@ -31,6 +32,11 @@ const FileCard = ({ item }: FileCardProps) => {
   return (
     <Card>
       <CardContent className="p-4 flex items-center gap-4">
+        {dragListeners && (
+          <button {...dragListeners} className="cursor-grab touch-none p-2 -ml-2 focus:outline-none focus:ring-2 focus:ring-ring rounded">
+            <GripVertical className="h-5 w-5 text-muted-foreground" />
+          </button>
+        )}
         <File className="h-8 w-8 text-muted-foreground flex-shrink-0" />
         <div className="flex-grow min-w-0">
           <p className="font-semibold truncate" title={item.file.name}>{item.file.name}</p>
