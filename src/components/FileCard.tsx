@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { File, X, GripVertical, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { QueueItem } from '@/types';
+import type { QueueItem } from '@/types';
 import useQueueStore from '@/stores/queueStore';
 import {
   Select,
@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Badge } from '@/components/ui/badge'; // Import Badge component
 import ConversionOptionsDialog from './ConversionOptionsDialog';
 
 interface FileCardProps {
@@ -59,7 +60,19 @@ const FileCard = ({ item, dragListeners }: FileCardProps) => {
                 </SelectTrigger>
                 <SelectContent>
                   {supportedFormats.map(format => (
-                    <SelectItem key={format} value={format}>{format}</SelectItem>
+                    <SelectItem 
+                      key={format} 
+                      value={format} 
+                      disabled={format !== 'DOCX'} // Disable all except DOCX
+                      className="flex items-center justify-between"
+                    >
+                      {format}
+                      {format !== 'DOCX' && (
+                        <Badge variant="secondary" className="ml-2">
+                          Coming Soon
+                        </Badge>
+                      )}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>

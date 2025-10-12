@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { arrayMove } from '@dnd-kit/sortable';
-import { QueueItem, FileStatus, ConversionOptions } from '@/types';
+import type { QueueItem, FileStatus, ConversionOptions } from '@/types';
 
 interface QueueState {
   files: QueueItem[];

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
-import { QueueItem } from "@/types"
+import type { QueueItem } from "@/types"
 import useQueueStore from "@/stores/queueStore"
 
 interface ConversionOptionsDialogProps {

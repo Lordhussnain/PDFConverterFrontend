@@ -1,7 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import FileCard from './FileCard';
-import { QueueItem } from '@/types';
+import type { QueueItem } from '@/types';
 import { motion } from 'framer-motion';
 
 interface DraggableFileCardProps {

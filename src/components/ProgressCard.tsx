@@ -2,7 +2,7 @@ import { File, CheckCircle, AlertCircle, Loader, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { QueueItem } from '@/types';
+import type { QueueItem } from '@/types';
 import useQueueStore from '@/stores/queueStore';
 import { toast } from "sonner";
 
