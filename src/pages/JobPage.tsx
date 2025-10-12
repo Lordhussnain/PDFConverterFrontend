@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { toast } from "sonner";
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type Query } from '@tanstack/react-query'; // Import Query type
 import { api } from '@/lib/api';
 import type { JobStatusResponse, JobResultItem } from '@/types';
 
@@ -37,10 +37,11 @@ const JobPage = () => {
 
   // Use react-query to poll for job status
   const { data: jobStatus, isLoading, isError, error } = useQuery<JobStatusResponse, Error>({
-    queryKey: ['jobStatus', jobId as string], // Explicitly type queryKey
+    queryKey: ['jobStatus', jobId as string],
     queryFn: () => api.getJobStatus(jobId!),
-    enabled: !!jobId, // Only run if jobId is available
-    refetchInterval: (data: JobStatusResponse | undefined) => { // Explicitly type data
+    enabled: !!jobId,
+    refetchInterval: (query: Query<JobStatusResponse, Error, JobStatusResponse, readonly unknown[]>) => {
+      const data = query.state.data as JobStatusResponse | undefined; // Correctly access data from query object
       // Poll every 2 seconds until job is completed or failed
       if (data && (data.status === 'completed' || data.status === 'failed' || data.status === 'cancelled')) {
         return false;
@@ -50,7 +51,7 @@ const JobPage = () => {
     onSuccess: (data: JobStatusResponse) => { // Explicitly type data
       if (data.status === 'completed') {
         toast.success(`Job ${jobId} completed!`);
-        data.results.forEach((result: JobResultItem) => { // Explicitly type result
+        data.results.forEach((result: JobResultItem) => {
           const file = filesInJob.find(f => f.options.targetFormat.toLowerCase() === result.format.toLowerCase());
           if (file) {
             setConversionResult(file.id, { url: result.outputUrl, size: result.size, format: result.format });
@@ -59,13 +60,13 @@ const JobPage = () => {
       } else if (data.status === 'failed' || data.status === 'cancelled') {
         toast.error(`Job ${jobId} ${data.status}.`);
         filesInJob.forEach(file => {
-          if (file.status !== 'completed') { // Only mark as failed if not already completed
+          if (file.status !== 'completed') {
             updateFileStatus(file.id, data.status);
           }
         });
       } else if (data.status === 'processing') {
         filesInJob.forEach(file => {
-          if (file.status === 'queued') { // Transition from queued to processing
+          if (file.status === 'queued') {
             updateFileStatus(file.id, 'processing');
           }
         });
@@ -82,7 +83,8 @@ const JobPage = () => {
   });
 
   const completedFiles = filesInJob.filter(f => f.status === 'completed' && f.result);
-  const isJobDone = jobStatus && (jobStatus.status === 'completed' || jobStatus.status === 'failed' || jobStatus.status === 'cancelled');
+  // Use optional chaining for jobStatus to safely access its properties
+  const isJobDone = jobStatus?.status === 'completed' || jobStatus?.status === 'failed' || jobStatus?.status === 'cancelled';
 
   const handleDownloadAll = async () => {
     if (completedFiles.length === 0) return;
@@ -130,7 +132,7 @@ const JobPage = () => {
         <p className="text-lg text-destructive">Error: {error?.message || 'Could not load job status.'}</p>
       </main>
     );
-  }
+  };
 
   return (
     <main className="container mx-auto px-4 py-8">

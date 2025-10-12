@@ -1,11 +1,10 @@
 import { useCallback } from 'react';
-import { useDropzone, type FileRejection, type DropzoneRootProps } from 'react-dropzone';
+import { useDropzone, type FileRejection } from 'react-dropzone';
 import useQueueStore from '@/stores/queueStore';
 import { UploadCloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { toast } from "sonner";
-import React from 'react'; // Keep React for React.ReactNode
 
 const Uploader = () => {
   const addFiles = useQueueStore((state) => state.addFiles);
@@ -32,7 +31,7 @@ const Uploader = () => {
 
   return (
     <motion.div
-      {...(getRootProps() as React.HTMLAttributes<HTMLDivElement>)}
+      {...(getRootProps() as any)} {/* Cast to any to resolve onDrag type conflict */}
       className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors cursor-pointer ${
         isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
       }`}

@@ -15,6 +15,7 @@ const ProgressCard = ({ item }: ProgressCardProps) => {
 
   const handleRetry = async () => {
     await retryConversion(item.id);
+    toast.info(`Retrying conversion for ${item.file.name}.`); // Explicitly calling toast.info
   };
 
   const formatFileSize = (bytes: number) => {

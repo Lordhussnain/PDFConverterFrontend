@@ -23,50 +23,52 @@ interface QueueState {
 const useQueueStore = create<QueueState>((set, get) => ({
   files: [],
   addFiles: async (newFiles) => {
-    const newQueueItems: QueueItem[] = [];
-    for (const file of newFiles) {
-      if (file.type === 'application/pdf') {
-        const newItem: QueueItem = {
-          id: uuidv4(),
-          file,
-          status: 'pending-upload-session', // Initial status
-          progress: 0,
-          options: {
-            targetFormat: 'DOCX',
-            ocr: false,
-            quality: 80,
-            pageRange: '',
-          },
-        };
-        newQueueItems.push(newItem);
+    const initialNewQueueItems: QueueItem[] = newFiles
+      .filter(file => file.type === 'application/pdf')
+      .map(file => ({
+        id: uuidv4(),
+        file,
+        status: 'pending-upload-session',
+        progress: 0,
+        options: {
+          targetFormat: 'DOCX',
+          ocr: false,
+          quality: 80,
+          pageRange: '',
+        },
+      }));
 
-        try {
-          const session: UploadSessionResponse = await api.createUploadSession({
-            filename: file.name,
-            size: file.size,
-          });
-          set((state) => ({
-            files: state.files.map((f) =>
-              f.id === newItem.id
-                ? { ...f, sessionId: session.sessionId, s3Key: session.key, uploadUrl: session.uploadUrl, status: 'pending' }
-                : f
-            ),
-          }));
-        } catch (error: any) {
-          toast.error(`Failed to create upload session for ${file.name}.`, {
-            description: error.message,
-          });
-          set((state) => ({
-            files: state.files.map((f) =>
-              f.id === newItem.id ? { ...f, status: 'failed' } : f
-            ),
-          }));
-        }
+    // Add all new items to the queue immediately with their initial status
+    set((state) => {
+      const existingPendingFiles = state.files.filter(f => f.status === 'pending' || f.status === 'pending-upload-session');
+      return { files: [...existingPendingFiles, ...initialNewQueueItems] };
+    });
+
+    // Process each new item asynchronously to create upload sessions
+    for (const item of initialNewQueueItems) {
+      try {
+        const session: UploadSessionResponse = await api.createUploadSession({
+          filename: item.file.name,
+          size: item.file.size,
+        });
+        set((state) => ({
+          files: state.files.map((f) =>
+            f.id === item.id
+              ? { ...f, sessionId: session.sessionId, s3Key: session.key, uploadUrl: session.uploadUrl, status: 'pending' }
+              : f
+          ),
+        }));
+      } catch (error: any) {
+        toast.error(`Failed to create upload session for ${item.file.name}.`, {
+          description: error.message,
+        });
+        set((state) => ({
+          files: state.files.map((f) =>
+            f.id === item.id ? { ...f, status: 'failed' } : f
+          ),
+        }));
       }
     }
-    // We only keep files that are pending, so the queue is cleared on new uploads
-    const pendingFiles = get().files.filter(f => f.status === 'pending' || f.status === 'pending-upload-session');
-    set({ files: [...pendingFiles, ...newQueueItems] });
   },
   removeFile: (id) => set((state) => ({
     files: state.files.filter(file => file.id !== id),
