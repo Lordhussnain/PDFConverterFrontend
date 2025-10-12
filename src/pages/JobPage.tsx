@@ -35,12 +35,11 @@ const JobPage = () => {
   const filesInJob = allFiles.filter(f => f.jobId === jobId);
   const { updateFileStatus, setConversionResult } = useQueueStore();
 
-  // Explicitly define the type for the useQuery options object
-  const queryOptions: UseQueryOptions<JobStatusResponse, Error, JobStatusResponse, ['jobStatus', string]> = {
-    queryKey: ['jobStatus', jobId as string],
+  const queryOptions = {
+    queryKey: ['jobStatus', jobId as string] as const,
     queryFn: () => api.getJobStatus(jobId!),
     enabled: !!jobId,
-    refetchInterval: (query: Query<JobStatusResponse, Error, JobStatusResponse, ['jobStatus', string]>) => { // Corrected queryKey type
+    refetchInterval: (query: Query<JobStatusResponse, Error, JobStatusResponse, readonly ['jobStatus', string]>) => {
       const data = query.state.data;
       // Poll every 2 seconds until job is completed or failed
       if (data && (data.status === 'completed' || data.status === 'failed' || data.status === 'cancelled')) {
@@ -80,7 +79,7 @@ const JobPage = () => {
         }
       });
     }
-  };
+  } satisfies UseQueryOptions<JobStatusResponse, Error, JobStatusResponse, readonly ['jobStatus', string]>;
 
   const { data: jobStatus, isLoading, isError, error } = useQuery(queryOptions);
 
