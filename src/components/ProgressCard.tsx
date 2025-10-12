@@ -13,9 +13,8 @@ interface ProgressCardProps {
 const ProgressCard = ({ item }: ProgressCardProps) => {
   const { retryConversion } = useQueueStore();
 
-  const handleRetry = () => {
-    retryConversion(item.id);
-    toast.info(`Retrying conversion for ${item.file.name}.`);
+  const handleRetry = async () => {
+    await retryConversion(item.id);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -28,16 +27,24 @@ const ProgressCard = ({ item }: ProgressCardProps) => {
 
   const getStatusInfo = () => {
     switch (item.status) {
+      case 'pending-upload-session':
+        return { icon: <Loader className="h-6 w-6 text-muted-foreground animate-spin" />, text: 'Preparing upload session...' };
+      case 'pending':
+        return { icon: <File className="h-6 w-6 text-muted-foreground" />, text: 'Ready for conversion' };
       case 'uploading':
         return { icon: <Loader className="h-6 w-6 text-primary animate-spin" />, text: `Uploading... ${item.progress}%` };
+      case 'queued':
+        return { icon: <Loader className="h-6 w-6 text-primary animate-spin" />, text: 'Queued for processing...' };
       case 'processing':
         return { icon: <Loader className="h-6 w-6 text-primary animate-spin" />, text: 'Processing...' };
       case 'completed':
         return { icon: <CheckCircle className="h-6 w-6 text-green-500" />, text: 'Completed' };
       case 'failed':
         return { icon: <AlertCircle className="h-6 w-6 text-destructive" />, text: 'Failed' };
+      case 'cancelled':
+        return { icon: <AlertCircle className="h-6 w-6 text-muted-foreground" />, text: 'Cancelled' };
       default:
-        return { icon: <File className="h-6 w-6 text-muted-foreground" />, text: 'Pending' };
+        return { icon: <File className="h-6 w-6 text-muted-foreground" />, text: 'Unknown Status' };
     }
   };
 
@@ -52,19 +59,19 @@ const ProgressCard = ({ item }: ProgressCardProps) => {
           <p className="text-sm text-muted-foreground">
             {formatFileSize(item.file.size)} · <span className="font-medium">{text}</span>
           </p>
-          {(item.status === 'uploading' || item.status === 'processing') && (
-            <Progress value={item.status === 'uploading' ? item.progress : undefined} className="mt-2 h-2" />
+          {(item.status === 'uploading' || item.status === 'processing' || item.status === 'queued') && (
+            <Progress value={item.progress > 0 ? item.progress : undefined} className="mt-2 h-2" />
           )}
         </div>
         {item.status === 'completed' && item.result && (
           <Button asChild>
-            <a href={item.result.url} download={item.file.name.replace('.pdf', `.${item.options.targetFormat.toLowerCase()}`)}>
+            <a href={item.result.url} download={item.file.name.replace('.pdf', `.${item.result.format?.toLowerCase() || item.options.targetFormat.toLowerCase()}`)}>
               <Download className="mr-2 h-4 w-4" />
               Download
             </a>
           </Button>
         )}
-        {item.status === 'failed' && (
+        {(item.status === 'failed' || item.status === 'cancelled') && (
           <Button variant="outline" onClick={handleRetry}>Retry</Button>
         )}
       </CardContent>

@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import useQueueStore from '@/stores/queueStore';
 import ProgressCard from '@/components/ProgressCard';
@@ -8,6 +7,9 @@ import { motion } from 'framer-motion';
 import { toast } from "sonner";
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import type { JobStatusResponse, JobResultItem } from '@/types';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -30,44 +32,57 @@ const itemVariants = {
 const JobPage = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const allFiles = useQueueStore((state) => state.files);
-  const files = allFiles.filter(f => f.jobId === jobId);
-  const { updateFileProgress, updateFileStatus, setConversionResult } = useQueueStore();
+  const filesInJob = allFiles.filter(f => f.jobId === jobId);
+  const { updateFileStatus, setConversionResult } = useQueueStore();
 
-  useEffect(() => {
-    const simulateProcess = (id: string, fileName: string) => {
-      // 1. Simulate Upload
-      const uploadInterval = setInterval(() => {
-        const currentFile = useQueueStore.getState().files.find(f => f.id === id);
-        if (!currentFile || currentFile.progress >= 100) {
-          clearInterval(uploadInterval);
-          if (currentFile && currentFile.progress >= 100) {
-            updateFileStatus(id, 'processing');
-            // 2. Simulate Processing
-            setTimeout(() => {
-              if (Math.random() < 0.1) {
-                updateFileStatus(id, 'failed');
-                toast.error(`Conversion failed for ${fileName}.`);
-              } else {
-                setConversionResult(id, { url: '#', size: Math.random() * 1000000 });
-                toast.success(`Successfully converted ${fileName}.`);
-              }
-            }, 2000 + Math.random() * 3000);
-          }
-          return;
-        }
-        useQueueStore.getState().updateFileProgress(id, currentFile.progress + 10);
-      }, 200);
-    };
-
-    files.forEach(file => {
-      if (file.status === 'uploading' && file.progress === 0) {
-        simulateProcess(file.id, file.file.name);
+  // Use react-query to poll for job status
+  const { data: jobStatus, isLoading, isError, error } = useQuery<JobStatusResponse, Error>({
+    queryKey: ['jobStatus', jobId as string], // Explicitly type queryKey
+    queryFn: () => api.getJobStatus(jobId!),
+    enabled: !!jobId, // Only run if jobId is available
+    refetchInterval: (data: JobStatusResponse | undefined) => { // Explicitly type data
+      // Poll every 2 seconds until job is completed or failed
+      if (data && (data.status === 'completed' || data.status === 'failed' || data.status === 'cancelled')) {
+        return false;
       }
-    });
-  }, [jobId, files, updateFileProgress, updateFileStatus, setConversionResult]);
+      return 2000;
+    },
+    onSuccess: (data: JobStatusResponse) => { // Explicitly type data
+      if (data.status === 'completed') {
+        toast.success(`Job ${jobId} completed!`);
+        data.results.forEach((result: JobResultItem) => { // Explicitly type result
+          const file = filesInJob.find(f => f.options.targetFormat.toLowerCase() === result.format.toLowerCase());
+          if (file) {
+            setConversionResult(file.id, { url: result.outputUrl, size: result.size, format: result.format });
+          }
+        });
+      } else if (data.status === 'failed' || data.status === 'cancelled') {
+        toast.error(`Job ${jobId} ${data.status}.`);
+        filesInJob.forEach(file => {
+          if (file.status !== 'completed') { // Only mark as failed if not already completed
+            updateFileStatus(file.id, data.status);
+          }
+        });
+      } else if (data.status === 'processing') {
+        filesInJob.forEach(file => {
+          if (file.status === 'queued') { // Transition from queued to processing
+            updateFileStatus(file.id, 'processing');
+          }
+        });
+      }
+    },
+    onError: (err: Error) => { // Explicitly type err
+      toast.error(`Failed to fetch job status: ${err.message}`);
+      filesInJob.forEach(file => {
+        if (file.status !== 'completed') {
+          updateFileStatus(file.id, 'failed');
+        }
+      });
+    }
+  });
 
-  const completedFiles = files.filter(f => f.status === 'completed');
-  const isJobDone = files.every(f => f.status === 'completed' || f.status === 'failed');
+  const completedFiles = filesInJob.filter(f => f.status === 'completed' && f.result);
+  const isJobDone = jobStatus && (jobStatus.status === 'completed' || jobStatus.status === 'failed' || jobStatus.status === 'cancelled');
 
   const handleDownloadAll = async () => {
     if (completedFiles.length === 0) return;
@@ -77,14 +92,18 @@ const JobPage = () => {
     try {
       const zip = new JSZip();
 
-      // Since the conversion is simulated, we'll create dummy files.
-      // In a real app, you would fetch the content from item.result.url.
       for (const item of completedFiles) {
-        const originalFileName = item.file.name.split('.').slice(0, -1).join('.');
-        const newExtension = item.options.targetFormat.toLowerCase();
-        const newFileName = `${originalFileName}.${newExtension}`;
-        const dummyContent = `This is the converted content for ${item.file.name}.`;
-        zip.file(newFileName, dummyContent);
+        if (item.result?.url) {
+          const response = await fetch(item.result.url);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch ${item.result.url}`);
+          }
+          const blob = await response.blob();
+          const originalFileName = item.file.name.split('.').slice(0, -1).join('.');
+          const newExtension = item.result.format?.toLowerCase() || item.options.targetFormat.toLowerCase();
+          const newFileName = `${originalFileName}.${newExtension}`;
+          zip.file(newFileName, blob);
+        }
       }
 
       const content = await zip.generateAsync({ type: "blob" });
@@ -96,6 +115,22 @@ const JobPage = () => {
       toast.error("Failed to create ZIP file.", { id: toastId });
     }
   };
+
+  if (isLoading) {
+    return (
+      <main className="container mx-auto px-4 py-8 text-center">
+        <p className="text-lg text-muted-foreground">Loading job status...</p>
+      </main>
+    );
+  }
+
+  if (isError) {
+    return (
+      <main className="container mx-auto px-4 py-8 text-center">
+        <p className="text-lg text-destructive">Error: {error?.message || 'Could not load job status.'}</p>
+      </main>
+    );
+  }
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -113,7 +148,7 @@ const JobPage = () => {
           className="space-y-4"
           variants={containerVariants}
         >
-          {files.map(item => (
+          {filesInJob.map(item => (
             <motion.div key={item.id} variants={itemVariants}>
               <ProgressCard item={item} />
             </motion.div>
@@ -124,7 +159,7 @@ const JobPage = () => {
             className="mt-8 flex justify-end"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: files.length * 0.1 + 0.5 }}
+            transition={{ delay: filesInJob.length * 0.1 + 0.5 }}
           >
             <Button size="lg" onClick={handleDownloadAll}>
               <Download className="mr-2 h-5 w-5" />

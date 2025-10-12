@@ -3,12 +3,9 @@ import { useDropzone, type FileRejection, type DropzoneRootProps } from 'react-d
 import useQueueStore from '@/stores/queueStore';
 import { UploadCloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { motion, type HTMLMotionProps } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { toast } from "sonner";
-import React from 'react'; // Import React for React.HTMLAttributes
-
-// Define a type that combines HTMLMotionProps with DropzoneRootProps
-interface MotionDropzoneRootProps extends HTMLMotionProps<'div'>, DropzoneRootProps {}
+import React from 'react'; // Keep React for React.ReactNode
 
 const Uploader = () => {
   const addFiles = useQueueStore((state) => state.addFiles);
@@ -35,7 +32,7 @@ const Uploader = () => {
 
   return (
     <motion.div
-      {...(getRootProps() as MotionDropzoneRootProps)}
+      {...(getRootProps() as React.HTMLAttributes<HTMLDivElement>)}
       className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors cursor-pointer ${
         isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
       }`}
