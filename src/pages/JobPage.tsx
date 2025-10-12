@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { toast } from "sonner";
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { useQuery, type Query } from '@tanstack/react-query'; // Import Query type
+import { useQuery, type Query, type UseQueryOptions } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { JobStatusResponse, JobResultItem } from '@/types';
 
@@ -35,20 +35,20 @@ const JobPage = () => {
   const filesInJob = allFiles.filter(f => f.jobId === jobId);
   const { updateFileStatus, setConversionResult } = useQueueStore();
 
-  // Use react-query to poll for job status
-  const { data: jobStatus, isLoading, isError, error } = useQuery<JobStatusResponse, Error>({
+  // Explicitly define the type for the useQuery options object
+  const queryOptions: UseQueryOptions<JobStatusResponse, Error, JobStatusResponse, ['jobStatus', string]> = {
     queryKey: ['jobStatus', jobId as string],
     queryFn: () => api.getJobStatus(jobId!),
     enabled: !!jobId,
-    refetchInterval: (query: Query<JobStatusResponse, Error, JobStatusResponse, readonly unknown[]>) => {
-      const data = query.state.data as JobStatusResponse | undefined; // Correctly access data from query object
+    refetchInterval: (query: Query<JobStatusResponse, Error, JobStatusResponse, ['jobStatus', string]>) => { // Corrected queryKey type
+      const data = query.state.data;
       // Poll every 2 seconds until job is completed or failed
       if (data && (data.status === 'completed' || data.status === 'failed' || data.status === 'cancelled')) {
         return false;
       }
       return 2000;
     },
-    onSuccess: (data: JobStatusResponse) => { // Explicitly type data
+    onSuccess: (data: JobStatusResponse) => {
       if (data.status === 'completed') {
         toast.success(`Job ${jobId} completed!`);
         data.results.forEach((result: JobResultItem) => {
@@ -72,7 +72,7 @@ const JobPage = () => {
         });
       }
     },
-    onError: (err: Error) => { // Explicitly type err
+    onError: (err: Error) => {
       toast.error(`Failed to fetch job status: ${err.message}`);
       filesInJob.forEach(file => {
         if (file.status !== 'completed') {
@@ -80,10 +80,11 @@ const JobPage = () => {
         }
       });
     }
-  });
+  };
+
+  const { data: jobStatus, isLoading, isError, error } = useQuery(queryOptions);
 
   const completedFiles = filesInJob.filter(f => f.status === 'completed' && f.result);
-  // Use optional chaining for jobStatus to safely access its properties
   const isJobDone = jobStatus?.status === 'completed' || jobStatus?.status === 'failed' || jobStatus?.status === 'cancelled';
 
   const handleDownloadAll = async () => {

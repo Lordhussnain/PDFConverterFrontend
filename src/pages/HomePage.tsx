@@ -11,10 +11,12 @@ const HomePage = () => {
   const files = allFiles.filter(f => f.status === 'pending');
   const { clearQueue, startConversion } = useQueueStore();
 
-  const handleConvert = () => {
+  const handleConvert = async () => { // Made async
     const fileIds = files.map(f => f.id);
-    const jobId = startConversion(fileIds);
-    navigate(`/job/${jobId}`);
+    const jobId = await startConversion(fileIds); // Await the result
+    if (jobId) {
+      navigate(`/job/${jobId}`);
+    }
   };
 
   return (

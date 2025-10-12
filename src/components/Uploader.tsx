@@ -31,7 +31,8 @@ const Uploader = () => {
 
   return (
     <motion.div
-      {...(getRootProps() as any)} // Cast to any to resolve onDrag type conflict
+      // Cast to any to resolve onDrag type conflict
+      {...(getRootProps() as any)}
       className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors cursor-pointer ${
         isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
       }`}
