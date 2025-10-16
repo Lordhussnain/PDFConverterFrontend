@@ -14,6 +14,7 @@ import { Blogpost1 } from './pages/BlogPost';
 import { Toaster } from "@/components/ui/sonner";
 import MainLayout from './components/layout/MainLayout';
 import BlogLayout from './components/layout/BlogLayout';
+import SignUpPage from './pages/SignUpPage';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             <Route path="/terms" element={<TermsOfServicePage />} />
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/careers" element={<CareersPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
           </Route>
           <Route element={<BlogLayout />}>
             <Route path="/blogpost" element={<Blogpost1 />} />

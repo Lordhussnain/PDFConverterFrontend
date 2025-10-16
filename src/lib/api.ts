@@ -1,42 +1,7 @@
-const API_BASE_URL = 'http://127.0.0.1:3000/api/v1'; // Adjust if your API is hosted elsewhere
+// src/lib/api.ts
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/api/v1';
 
-interface UploadSessionRequest {
-  filename: string;
-  size?: number;
-}
-
-interface UploadSessionResponse {
-  sessionId: string;
-  key: string; // S3 object key
-  uploadUrl: string; // Pre-signed URL for direct S3 PUT upload (ASSUMPTION: your backend provides this)
-}
-
-interface CreateJobRequest {
-  sessionId: string;
-  outputs?: Array<{ format: string }>;
-}
-
-interface CreateJobResponse {
-  jobId: string;
-  location: string;
-}
-
-interface JobResult {
-  outputUrl: string;
-  format: string;
-  size: number;
-}
-
-interface JobStatusResponse {
-  jobId: string;
-  status: 'queued' | 'processing' | 'completed' | 'failed' | 'cancelled';
-  outputs: string; // JSON string of requested output formats
-  results: JobResult[];
-  logs: any[]; // Adjust type as needed
-  createdAt: string;
-  startedAt: string | null;
-  finishedAt: string | null;
-}
+import type { UploadSessionRequest, UploadSessionResponse, CreateJobRequest, CreateJobResponse, JobStatusResponse, DownloadResponse } from '@/types';
 
 const handleApiResponse = async (response: Response) => {
   if (!response.ok) {
@@ -91,6 +56,11 @@ export const api = {
 
   getJobStatus: async (jobId: string): Promise<JobStatusResponse> => {
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`);
+    return handleApiResponse(response);
+  },
+
+  getDownloadUrl: async (jobId: string, resultId: string): Promise<DownloadResponse> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/results/${resultId}/download`);
     return handleApiResponse(response);
   },
 };

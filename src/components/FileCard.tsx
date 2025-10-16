@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Badge } from '@/components/ui/badge'; // Import Badge component
+import { Badge } from '@/components/ui/badge';
 import ConversionOptionsDialog from './ConversionOptionsDialog';
 
 interface FileCardProps {
@@ -19,7 +19,7 @@ interface FileCardProps {
   dragListeners?: Record<string, any>;
 }
 
-const supportedFormats = ["DOCX", "PPTX", "JPG", "TXT", "EPUB"];
+const supportedFormats = ["DOCX", "PPTX", "JPG", "TXT", "EPUB", "XLSX"];
 
 const FileCard = ({ item, dragListeners }: FileCardProps) => {
   const { removeFile, updateFileFormat } = useQueueStore();
@@ -51,8 +51,8 @@ const FileCard = ({ item, dragListeners }: FileCardProps) => {
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
               <span className="text-sm text-muted-foreground hidden sm:inline">To:</span>
-              <Select 
-                defaultValue={item.options.targetFormat}
+              <Select
+                value={item.options.targetFormat}
                 onValueChange={(value) => updateFileFormat(item.id, value)}
               >
                 <SelectTrigger className="w-[110px] sm:w-[120px]">
@@ -60,14 +60,28 @@ const FileCard = ({ item, dragListeners }: FileCardProps) => {
                 </SelectTrigger>
                 <SelectContent>
                   {supportedFormats.map(format => (
-                    <SelectItem 
-                      key={format} 
-                      value={format} 
-                      disabled={format !== 'DOCX'} // Disable all except DOCX
+                    <SelectItem
+                      key={format}
+                      value={format}
                       className="flex items-center justify-between"
                     >
                       {format}
-                      {format !== 'DOCX' && (
+                      {format === 'PPTX' && (
+                        <Badge variant="secondary" className="ml-2">
+                          Coming Soon
+                        </Badge>
+                      )}
+                      {format === 'JPG' && (
+                        <Badge variant="secondary" className="ml-2">
+                          Coming Soon
+                        </Badge>
+                      )}
+                      {format === 'TXT' && (
+                        <Badge variant="secondary" className="ml-2">
+                          Coming Soon
+                        </Badge>
+                      )}
+                      {format === 'EPUB' && (
                         <Badge variant="secondary" className="ml-2">
                           Coming Soon
                         </Badge>
@@ -97,7 +111,7 @@ const FileCard = ({ item, dragListeners }: FileCardProps) => {
           </Button>
         </CardContent>
       </Card>
-      <ConversionOptionsDialog 
+      <ConversionOptionsDialog
         item={item}
         isOpen={isOptionsOpen}
         onOpenChange={setIsOptionsOpen}

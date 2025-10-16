@@ -16,7 +16,7 @@ interface QueueState {
   startConversion: (fileIds: string[]) => Promise<string | undefined>;
   updateFileProgress: (id: string, progress: number) => void;
   updateFileStatus: (id: string, status: FileStatus) => void;
-  setConversionResult: (id: string, result: { url: string; size: number; format?: string }) => void;
+  setConversionResult: (id: string, result: { url: string;  format?: string }) => void;
   retryConversion: (id: string) => Promise<void>;
 }
 
