@@ -1,3 +1,11 @@
+export interface User {
+  _id: string;
+  userName: string;
+  email: string;
+  phoneNumber: string;
+  isVerified: boolean;
+}
+
 export type FileStatus = "pending" | "uploading" | "processing" | "completed" | "failed" | "cancelled" | "pending-upload-session" | "queued";
 
 export interface ConversionOptions {

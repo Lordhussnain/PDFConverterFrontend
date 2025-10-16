@@ -4,16 +4,36 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Eye, EyeOff, Phone } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { authApi } from '@/lib/api';
+import useAuthStore from '@/stores/authStore';
 
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    userName: '',
     email: '',
     password: '',
-    phone: '',
+    phoneNumber: '',
+  });
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { setUser, setEmailForVerification } = useAuthStore();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: authApi.signup,
+    onSuccess: (data) => {
+      toast.success(data.message);
+      setUser(data.user);
+      setEmailForVerification(data.user.email);
+      queryClient.invalidateQueries({ queryKey: ['checkAuth'] });
+      navigate('/verify-email', { state: { from: '/signup' } });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,11 +43,7 @@ const SignUpPage = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast.success('Account created successfully!', {
-      description: 'Welcome to PDF Converter. Please check your email for verification.',
-    });
-    // Reset form
-    setFormData({ name: '', email: '', password: '', phone: '' });
+    mutate(formData);
   };
 
   return (
@@ -48,13 +64,13 @@ const SignUpPage = () => {
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="userName">Username</Label>
             <Input
-              id="name"
-              name="name"
+              id="userName"
+              name="userName"
               type="text"
-              placeholder="Your full name"
-              value={formData.name}
+              placeholder="Your username"
+              value={formData.userName}
               onChange={handleChange}
               required
             />
@@ -74,14 +90,14 @@ const SignUpPage = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
+            <Label htmlFor="phoneNumber">Phone Number</Label>
             <div className="relative">
               <Input
-                id="phone"
-                name="phone"
+                id="phoneNumber"
+                name="phoneNumber"
                 type="tel"
                 placeholder="+1 (123) 456-7890"
-                value={formData.phone}
+                value={formData.phoneNumber}
                 onChange={handleChange}
                 required
               />
@@ -111,8 +127,8 @@ const SignUpPage = () => {
             </div>
           </div>
 
-          <Button type="submit" className="w-full" size="lg">
-            Sign Up
+          <Button type="submit" className="w-full" size="lg" disabled={isPending}>
+            {isPending ? 'Creating Account...' : 'Sign Up'}
           </Button>
         </form>
 

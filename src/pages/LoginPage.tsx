@@ -4,14 +4,40 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { authApi } from '@/lib/api';
+import useAuthStore from '@/stores/authStore';
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    emailOrUsername: '',
     password: '',
+  });
+  const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const { setUser, setEmailForVerification } = useAuthStore();
+  const from = location.state?.from?.pathname || "/";
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: authApi.login,
+    onSuccess: (data) => {
+      toast.success(data.message);
+      setUser(data.user);
+      queryClient.invalidateQueries({ queryKey: ['checkAuth'] });
+      if (!data.user.isVerified) {
+        setEmailForVerification(data.user.email);
+        navigate('/verify-email', { state: { from: '/login' } });
+      } else {
+        navigate(from, { replace: true });
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,11 +47,7 @@ const LoginPage = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast.success('Logged in successfully!', {
-      description: 'Welcome back to PDF Converter.',
-    });
-    // Reset form
-    setFormData({ email: '', password: '' });
+    mutate(formData);
   };
 
   return (
@@ -46,13 +68,13 @@ const LoginPage = () => {
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="emailOrUsername">Email or Username</Label>
             <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="your@email.com"
-              value={formData.email}
+              id="emailOrUsername"
+              name="emailOrUsername"
+              type="text"
+              placeholder="your@email.com or username"
+              value={formData.emailOrUsername}
               onChange={handleChange}
               required
             />
@@ -78,10 +100,15 @@ const LoginPage = () => {
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+            <div className="text-right">
+              <Link to="/forgot-password" tabIndex={-1} className="text-sm text-primary hover:underline">
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
-          <Button type="submit" className="w-full" size="lg">
-            Log In
+          <Button type="submit" className="w-full" size="lg" disabled={isPending}>
+            {isPending ? 'Logging In...' : 'Log In'}
           </Button>
         </form>
 
