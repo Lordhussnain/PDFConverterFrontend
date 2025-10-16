@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select"
 import { Badge } from '@/components/ui/badge';
 import ConversionOptionsDialog from './ConversionOptionsDialog';
+import useAuthStore from '@/stores/authStore';
 
 interface FileCardProps {
   item: QueueItem;
@@ -23,6 +24,7 @@ const supportedFormats = ["DOCX", "PPTX", "JPG", "TXT", "EPUB", "XLSX"];
 
 const FileCard = ({ item, dragListeners }: FileCardProps) => {
   const { removeFile, updateFileFormat } = useQueueStore();
+  const { isAuthenticated } = useAuthStore();
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
   const formatFileSize = (bytes: number) => {
@@ -33,12 +35,19 @@ const FileCard = ({ item, dragListeners }: FileCardProps) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const isInteractiveDisabled = !isAuthenticated;
+
   return (
     <>
       <Card>
         <CardContent className="p-4 flex items-center gap-2 sm:gap-4">
           {dragListeners && (
-            <button {...dragListeners} className="cursor-grab touch-none p-2 -ml-2 focus:outline-none focus:ring-2 focus:ring-ring rounded">
+            <button 
+              {...dragListeners} 
+              className={`cursor-grab touch-none p-2 -ml-2 focus:outline-none focus:ring-2 focus:ring-ring rounded ${isInteractiveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={isInteractiveDisabled}
+              title={isInteractiveDisabled ? "Sign in to reorder files" : undefined}
+            >
               <GripVertical className="h-5 w-5 text-muted-foreground" />
             </button>
           )}
@@ -54,6 +63,7 @@ const FileCard = ({ item, dragListeners }: FileCardProps) => {
               <Select
                 value={item.options.targetFormat}
                 onValueChange={(value) => updateFileFormat(item.id, value)}
+                disabled={isInteractiveDisabled}
               >
                 <SelectTrigger className="w-[110px] sm:w-[120px]">
                   <SelectValue placeholder="Format" />
@@ -64,24 +74,10 @@ const FileCard = ({ item, dragListeners }: FileCardProps) => {
                       key={format}
                       value={format}
                       className="flex items-center justify-between"
+                      disabled={format !== 'DOCX'} // Assuming only DOCX is functional for now
                     >
                       {format}
-                      {format === 'PPTX' && (
-                        <Badge variant="secondary" className="ml-2">
-                          Coming Soon
-                        </Badge>
-                      )}
-                      {format === 'JPG' && (
-                        <Badge variant="secondary" className="ml-2">
-                          Coming Soon
-                        </Badge>
-                      )}
-                      {format === 'TXT' && (
-                        <Badge variant="secondary" className="ml-2">
-                          Coming Soon
-                        </Badge>
-                      )}
-                      {format === 'EPUB' && (
+                      {format !== 'DOCX' && (
                         <Badge variant="secondary" className="ml-2">
                           Coming Soon
                         </Badge>
@@ -97,6 +93,8 @@ const FileCard = ({ item, dragListeners }: FileCardProps) => {
             className="text-muted-foreground hover:text-primary flex-shrink-0"
             onClick={() => setIsOptionsOpen(true)}
             aria-label="Conversion options"
+            disabled={isInteractiveDisabled}
+            title={isInteractiveDisabled ? "Sign in to change options" : undefined}
           >
             <SlidersHorizontal className="h-4 w-4" />
           </Button>

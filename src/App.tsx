@@ -34,13 +34,12 @@ function App() {
             {/* Protected Routes */}
             <Route element={<MainLayout />}>
               <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<HomePage />} />
                 <Route path="/job/:jobId" element={<JobPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
               </Route>
             </Route>
 
-            {/* Public Routes */}
+            {/* Public Routes (Auth forms) */}
             <Route element={<MainLayout />}>
               <Route element={<PublicRoute />}>
                 <Route path="/signup" element={<SignUpPage />} />
@@ -57,8 +56,9 @@ function App() {
               </Route>
             </Route>
 
-            {/* General Public Routes */}
+            {/* General Public Routes (Accessible to all, including guests) */}
             <Route element={<MainLayout />}>
+              <Route path="/" element={<HomePage />} />
               <Route path="/features" element={<FeaturesPage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/faq" element={<FAQPage />} />
