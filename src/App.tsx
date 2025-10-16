@@ -15,6 +15,7 @@ import { Toaster } from "@/components/ui/sonner";
 import MainLayout from './components/layout/MainLayout';
 import BlogLayout from './components/layout/BlogLayout';
 import SignUpPage from './pages/SignUpPage';
+import LoginPage from './pages/LoginPage';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/careers" element={<CareersPage />} />
             <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/login" element={<LoginPage />} />
           </Route>
           <Route element={<BlogLayout />}>
             <Route path="/blogpost" element={<Blogpost1 />} />
