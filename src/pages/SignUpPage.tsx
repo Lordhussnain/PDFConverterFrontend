@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { UserPlus, Eye, EyeOff } from 'lucide-react';
+import { UserPlus, Eye, EyeOff, Phone } from 'lucide-react';
 
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,6 +13,7 @@ const SignUpPage = () => {
     name: '',
     email: '',
     password: '',
+    phone: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,7 +27,7 @@ const SignUpPage = () => {
       description: 'Welcome to PDF Converter. Please check your email for verification.',
     });
     // Reset form
-    setFormData({ name: '', email: '', password: '' });
+    setFormData({ name: '', email: '', password: '', phone: '' });
   };
 
   return (
@@ -70,6 +71,22 @@ const SignUpPage = () => {
               onChange={handleChange}
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <div className="relative">
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder="+1 (123) 456-7890"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+              />
+              <Phone className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
+            </div>
           </div>
 
           <div className="space-y-2">
