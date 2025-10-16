@@ -5,22 +5,7 @@ import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { UserPlus, Eye, EyeOff, ChevronDown } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandInput, CommandList, CommandItem, CommandGroup } from '@/components/ui/command';
-
-const countryCodes = [
-  { code: '+1', name: 'United States', flag: '🇺🇸' },
-  { code: '+44', name: 'United Kingdom', flag: '🇬🇧' },
-  { code: '+91', name: 'India', flag: '🇮🇳' },
-  { code: '+81', name: 'Japan', flag: '🇯🇵' },
-  { code: '+49', name: 'Germany', flag: '🇩🇪' },
-  { code: '+33', name: 'France', flag: '🇫🇷' },
-  { code: '+61', name: 'Australia', flag: '🇦🇺' },
-  { code: '+86', name: 'China', flag: '🇨🇳' },
-  { code: '+55', name: 'Brazil', flag: '🇧🇷' },
-  { code: '+7', name: 'Russia', flag: '🇷🇺' },
-];
+import { UserPlus, Eye, EyeOff, Phone } from 'lucide-react';
 
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,7 +14,6 @@ const SignUpPage = () => {
     email: '',
     password: '',
     phone: '',
-    countryCode: '+1',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,7 +27,7 @@ const SignUpPage = () => {
       description: 'Welcome to PDF Converter. Please check your email for verification.',
     });
     // Reset form
-    setFormData({ name: '', email: '', password: '', phone: '', countryCode: '+1' });
+    setFormData({ name: '', email: '', password: '', phone: '' });
   };
 
   return (
@@ -91,44 +75,17 @@ const SignUpPage = () => {
 
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
-            <div className="flex">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-[100px] justify-between">
-                    <span>{formData.countryCode}</span>
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0 w-[200px]">
-                  <Command>
-                    <CommandInput placeholder="Search country..." />
-                    <CommandList>
-                      <CommandGroup>
-                        {countryCodes.map((country) => (
-                          <CommandItem
-                            key={country.code}
-                            onSelect={() => {
-                              setFormData(prev => ({ ...prev, countryCode: country.code }));
-                            }}
-                          >
-                            {country.flag} {country.name} ({country.code})
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+            <div className="relative">
               <Input
                 id="phone"
                 name="phone"
                 type="tel"
-                placeholder="123 456 7890"
+                placeholder="+1 (123) 456-7890"
                 value={formData.phone}
                 onChange={handleChange}
                 required
-                className="flex-grow"
               />
+              <Phone className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
             </div>
           </div>
 
