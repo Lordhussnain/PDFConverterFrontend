@@ -24,7 +24,6 @@ import AuthInitializer from '@/components/AuthInitializer';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import PublicRoute from '@/components/auth/PublicRoute';
 import ConditionalRoute from '@/components/auth/ConditionalRoute';
-import VerificationGuard from '@/components/auth/VerificationGuard';
 
 function App() {
   return (
@@ -57,22 +56,18 @@ function App() {
               </Route>
             </Route>
 
-            {/* General Public Routes (Accessible to all, including guests) 
-                These are now guarded to redirect unverified users to /verify-email
-            */}
+            {/* General Public Routes (Accessible to all, including guests) */}
             <Route element={<MainLayout />}>
-              <Route element={<VerificationGuard />}>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/features" element={<FeaturesPage />} />
-                <Route path="/pricing" element={<PricingPage />} />
-                <Route path="/faq" element={<FAQPage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/privacy" element={<PrivacyPolicyPage />} />
-                <Route path="/terms" element={<TermsOfServicePage />} />
-                <Route path="/blog" element={<BlogPage />} />
-                <Route path="/careers" element={<CareersPage />} />
-              </Route>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/features" element={<FeaturesPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/faq" element={<FAQPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/privacy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms" element={<TermsOfServicePage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/careers" element={<CareersPage />} />
             </Route>
 
             {/* Blog Layout Routes */}
