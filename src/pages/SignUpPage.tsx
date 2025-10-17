@@ -27,9 +27,17 @@ const SignUpPage = () => {
     onSuccess: (data) => {
       toast.success(data.message);
       setUser(data.user);
-      setEmailForVerification(data.user.email);
       queryClient.invalidateQueries({ queryKey: ['checkAuth'] });
-      navigate('/verify-email', { state: { from: '/signup' } });
+      
+      if (data.user.isVerified) {
+        // If the user is already verified (e.g., backend auto-verifies), go straight to home
+        setEmailForVerification(null);
+        navigate('/', { replace: true });
+      } else {
+        // If verification is required, set email and navigate to verification page
+        setEmailForVerification(data.user.email);
+        navigate('/verify-email', { state: { from: '/signup' } });
+      }
     },
     onError: (error) => {
       toast.error(error.message);
