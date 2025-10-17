@@ -19,15 +19,16 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const { setUser, setEmailForVerification } = useAuthStore();
+  const { login, setEmailForVerification } = useAuthStore();
   const from = location.state?.from?.pathname || "/";
 
   const { mutate, isPending } = useMutation({
     mutationFn: authApi.login,
     onSuccess: (data) => {
-      toast.success(data.message);
-      setUser(data.user);
+      // Use the store's login action (shows toast)
+      login(data.user); 
       queryClient.invalidateQueries({ queryKey: ['checkAuth'] });
+      
       if (!data.user.isVerified) {
         setEmailForVerification(data.user.email);
         navigate('/verify-email', { state: { from: '/login' } });

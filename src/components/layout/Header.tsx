@@ -27,14 +27,17 @@ const Header = () => {
   const { isAuthenticated, user, logout } = useAuthStore();
   const queryClient = useQueryClient();
 
+  const handleClientLogout = () => {
+    logout(); // Clears client state and shows toast
+    queryClient.clear();
+  };
+
   const { mutate: logoutMutate } = useMutation({
     mutationFn: authApi.logout,
-    onSuccess: () => {
-      logout();
-      queryClient.clear();
-      toast.success("Logged out successfully.");
-    },
+    onSuccess: handleClientLogout,
     onError: (error) => {
+      // Even if API logout fails, we should clear client state for safety
+      handleClientLogout();
       toast.error(error.message);
     },
   });

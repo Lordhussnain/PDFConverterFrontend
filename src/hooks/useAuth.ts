@@ -4,7 +4,7 @@ import { authApi } from '@/lib/api';
 import useAuthStore from '@/stores/authStore';
 
 export const useAuth = () => {
-  const { setUser, setLoading, user } = useAuthStore();
+  const { login, logout, setLoading, isAuthenticated } = useAuthStore();
 
   const { data, isError, isLoading, isSuccess } = useQuery({
     queryKey: ['checkAuth'],
@@ -15,14 +15,26 @@ export const useAuth = () => {
   });
 
   useEffect(() => {
-    if (isSuccess && data?.user) {
-      setUser(data.user);
-    } else if (isError || (!isLoading && !data?.user)) {
-      setUser(null);
-    } else if (isLoading) {
-      setLoading(true);
-    }
-  }, [data, isError, isLoading, isSuccess, setUser, setLoading]);
+    // Update global loading state based on query status
+    setLoading(isLoading);
+  }, [isLoading, setLoading]);
 
-  return { user, isLoading: useAuthStore((s) => s.isLoading) };
+  useEffect(() => {
+    if (isSuccess && data?.user) {
+      // Use the new login action (showToast=false for initial check)
+      login(data.user, false); 
+    } else if (isError || (!isLoading && !data?.user)) {
+      // If check fails or returns no user, ensure we are logged out
+      if (isAuthenticated) {
+        // Only call logout if currently authenticated (logout handles toast/state clear)
+        logout();
+      } else {
+        // If already logged out, just ensure loading is false
+        setLoading(false);
+      }
+    }
+  }, [data, isError, isLoading, isSuccess, login, logout, setLoading, isAuthenticated]);
+
+  // Return the current state from the store
+  return { user: useAuthStore.getState().user, isLoading: useAuthStore.getState().isLoading };
 };

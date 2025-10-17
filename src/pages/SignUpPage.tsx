@@ -20,13 +20,13 @@ const SignUpPage = () => {
   });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { setUser, setEmailForVerification } = useAuthStore();
+  const { login, setEmailForVerification } = useAuthStore();
 
   const { mutate, isPending } = useMutation({
     mutationFn: authApi.signup,
     onSuccess: (data) => {
-      toast.success(data.message);
-      setUser(data.user);
+      // Use the store's login action (shows toast)
+      login(data.user);
       queryClient.invalidateQueries({ queryKey: ['checkAuth'] });
       
       if (data.user.isVerified) {
