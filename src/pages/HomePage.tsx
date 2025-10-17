@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Uploader from '@/components/Uploader';
 import QueueList from '@/components/QueueList';
 import { Button } from '@/components/ui/button';
@@ -13,18 +13,20 @@ const HomePage = () => {
   const files = allFiles.filter(f => f.status === 'pending');
   const { clearQueue, startConversion } = useQueueStore();
 
-  const handleConvert = async () => { // Made async
+  const handleConvert = async () => {
     if (!isAuthenticated) {
+      // This should ideally be blocked by the button's disabled state, but good for safety
       return;
     }
     const fileIds = files.map(f => f.id);
-    const jobId = await startConversion(fileIds); // Await the result
+    const jobId = await startConversion(fileIds);
     if (jobId) {
       navigate(`/job/${jobId}`);
     }
   };
 
   const isConvertDisabled = !isAuthenticated || files.length === 0;
+  const showAuthPrompt = !isAuthenticated && files.length > 0;
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -67,21 +69,23 @@ const HomePage = () => {
                 size="lg" 
                 onClick={handleConvert}
                 disabled={isConvertDisabled}
-                title={!isAuthenticated ? "Sign in to start conversion" : undefined}
               >
-                Convert Now ({files.length})
+                {isAuthenticated ? `Convert Now (${files.length})` : 'Sign In to Convert'}
               </Button>
             </motion.div>
           )}
         </AnimatePresence>
         
-        {!isAuthenticated && files.length > 0 && (
+        {showAuthPrompt && (
             <motion.p
                 className="mt-4 text-center text-sm text-muted-foreground"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
             >
-                <span className="font-semibold text-primary">Please sign in</span> to enable the conversion process.
+                <span className="font-semibold text-primary">Please sign in or sign up</span> to start the conversion process.
+                <Link to="/signup" className="text-primary hover:underline ml-1">
+                    Sign Up Now
+                </Link>
             </motion.p>
         )}
       </div>
