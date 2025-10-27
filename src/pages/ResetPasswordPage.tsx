@@ -10,6 +10,16 @@ import { Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
+
+
+
+
+
+
+
+
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001/api/v1';
 const ResetPasswordPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
@@ -28,7 +38,7 @@ const ResetPasswordPage = () => {
     setIsSubmitting(true);
     try {
       // The token is passed as a URL parameter
-      const response = await axios.post(`http://localhost:3001/api/v1/auth/reset-password/${token}`, {
+      const response = await axios.post(`${API_BASE_URL}/auth/reset-password/${token}`, {
         password: password,
       }, {
         withCredentials: true,

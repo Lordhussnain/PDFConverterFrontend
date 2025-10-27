@@ -10,6 +10,18 @@ import { authApi } from '@/lib/api';
 import useAuthStore from '@/stores/authStore';
 import axios from 'axios';
 
+
+
+
+
+
+
+
+
+
+
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001/api/v1';
 const VerifyEmailPage = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
@@ -22,6 +34,10 @@ const VerifyEmailPage = () => {
   const email = emailFromState || signupEmail; // Prioritize state, then store
   const [isResending, setIsResending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+
+
+
+
 
 
   // Restrict access and manage auth store state
@@ -84,7 +100,7 @@ const VerifyEmailPage = () => {
     if (code.length === 6) {
       try {
         setIsVerifying(true);
-        const response = await axios.post('http://localhost:3001/api/v1/auth/verify-email', {
+        const response = await axios.post(`${API_BASE_URL}/auth/verify-email`, {
           code:code
         }, {
           withCredentials: true,

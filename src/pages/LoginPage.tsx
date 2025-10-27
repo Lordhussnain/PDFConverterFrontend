@@ -4,13 +4,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { authApi } from '@/lib/api';
+
 import useAuthStore from '@/stores/authStore';
 import axios from 'axios';
 
+
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001/api/v1';
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -18,7 +20,7 @@ const LoginPage = () => {
     password: '',
   });
   const navigate = useNavigate();
-  const location = useLocation();
+
   const [isPending, setIsPending] = useState(false);
   const { login: loginUser, isAuthenticated } = useAuthStore();
   const clearSignupProgress = useAuthStore((state) => state.clearSignupProgress);
@@ -43,7 +45,7 @@ useEffect(() => {
     
     setIsPending(true);
     try {
-      const response = await axios.post('http://localhost:3001/api/v1/auth/login', {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         emailOrUsername: formData.emailOrUsername,
         password: formData.password,
       }, {

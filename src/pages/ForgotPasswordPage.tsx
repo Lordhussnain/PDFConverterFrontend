@@ -9,7 +9,7 @@ import { Mail } from "lucide-react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001/api/v1';
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,7 +20,7 @@ const ForgotPasswordPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await axios.post('http://localhost:3001/api/v1/auth/forgot-password', {
+      const response = await axios.post(`${API_BASE_URL}/auth/forgot-password`, {
         email: email,
       }, {
         withCredentials: true,

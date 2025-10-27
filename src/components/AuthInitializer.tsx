@@ -1,34 +1,44 @@
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import React from 'react';
-import { useAuthStore } from '@/stores/authStore';
+import useAuthStore from '@/stores/authStore';
 
 import { Skeleton } from './ui/skeleton';
 
 import { setupApiInterceptors } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
-import { Loader2 } from 'lucide-react'; // Import Loader2 for a better loading indicator
+import { Loader2 } from 'lucide-react';
 
+// NOTE: useAuthStore is default export in your file; adjust import if needed.
+// const { login, logout, isAuthenticated, user, signupInProgress } = useAuthStore(); // not allowed at top-level
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001/api/v1';
 const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
-  const { login, logout, isAuthenticated, user, signupInProgress } = useAuthStore(); // Get signupInProgress
-
+  const { login, logout, isAuthenticated, user, signupInProgress } = useAuthStore();
+  const setLoading = useAuthStore((s) => s.setLoading); // <- store API to flip isLoading
   const location = useLocation();
 
-  const [isAuthAndDataLoaded, setIsAuthAndDataLoaded] = useState(false); // Combined loading state
+  const [isAuthAndDataLoaded, setIsAuthAndDataLoaded] = useState(false); // combined loading local flag
   const hasSetupInterceptors = useRef(false);
 
-  // Use TanStack Query for the initial auth check
+  // initial auth check via react-query
   const { data, isLoading: isAuthQueryLoading, isError: isAuthQueryError } = useQuery({
     queryKey: ['authStatus', location.pathname],
     queryFn: async () => {
       try {
-        const response = await axios.get('http://localhost:3001/api/v1/auth/check-auth', {
+
+        const response = await axios.get(`${API_BASE_URL}/auth/check-auth`, {
+
           withCredentials: true,
+
         });
+
         return response.data;
+
       } catch (error) {
+
         throw error; 
+
       }
     },
     enabled: true,
@@ -37,7 +47,7 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
     gcTime: 0,
   });
 
-  // This effect runs once to set up interceptors
+  // Set up interceptors once
   useEffect(() => {
     if (!hasSetupInterceptors.current) {
       setupApiInterceptors(logout);
@@ -45,34 +55,50 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
     }
   }, [logout]);
 
-  // This effect handles the result of the auth query
+  // Manage global loading based on query lifecycle
   useEffect(() => {
-    // Only proceed if the auth query has finished loading
+    // When component mounts and query starts, mark loading true
+    setLoading(true);
+
+    return () => {
+      // ensure we clear loading on unmount
+      setLoading(false);
+    };
+  }, [setLoading]);
+
+  // Handle auth query result
+  useEffect(() => {
     if (!isAuthQueryLoading) {
-      // If data is successfully fetched and user is present
       if (data?.success && data.user) {
-        console.log("[AuthInitializer] User authenticated:", data.user.userName);
-        // Check if the user is already set in the store to prevent redundant calls
+        // user authenticated
         if (!isAuthenticated || user?._id !== data.user._id) {
-          login(data.user, false); // Login without showing toast
+          login(data.user, false); // login without toast
         }
-  
-        console.log("[AuthInitializer] Cart and Wishlist initialization triggered.");
       } else {
-        console.log("[AuthInitializer] User not authenticated or check failed.");
-        // Only call logout if not in signup progress AND currently authenticated
-        // This prevents clearing signupInProgress if the user is in the verification flow
-        // and prevents redundant logout calls if already logged out.
+        // not authenticated
         if (!signupInProgress && isAuthenticated) {
+          // only logout if not in signup flow and currently authenticated
           logout(true);
         }
       }
-      // Mark initial check as complete regardless of success or failure
-      setIsAuthAndDataLoaded(true);
-    }
-  }, [isAuthQueryLoading, data, isAuthQueryError, login, logout,  isAuthenticated, user, signupInProgress]);
 
-  // If the initial check or data loading is still in progress, show a loading skeleton
+      // mark local completed and clear global loading
+      setIsAuthAndDataLoaded(true);
+      setLoading(false);
+    }
+  }, [
+    isAuthQueryLoading,
+    data,
+    isAuthQueryError,
+    login,
+    logout,
+    isAuthenticated,
+    user,
+    signupInProgress,
+    setLoading,
+  ]);
+
+  // While local initializer not complete show skeleton
   if (!isAuthAndDataLoaded) {
     return (
       <div className="flex flex-col min-h-screen">
@@ -101,8 +127,7 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // After the initial check and data loading is finished, render children.
-  // ProtectedRoute will then handle further redirection if isAuthenticated is false.
+  // render children once initialization complete
   return <>{children}</>;
 };
 

@@ -9,7 +9,17 @@ import { UserPlus, Eye, EyeOff, Phone } from 'lucide-react';
 
 import useAuthStore from '@/stores/authStore';
 import axios from 'axios';
-import { set } from 'date-fns';
+
+
+
+
+
+
+
+
+
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001/api/v1';
 
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -50,7 +60,7 @@ const SignUpPage = () => {
    setIsPending(true);
     try {
        // Update auth store
-      const response = await axios.post('http://localhost:3001/api/v1/auth/signup',formData, {
+      const response = await axios.post(`${API_BASE_URL}/auth/signup`,formData, {
         withCredentials: true,
       });
 

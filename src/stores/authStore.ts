@@ -8,6 +8,7 @@ interface AuthState {
   isVerified: boolean;
   signupInProgress: boolean;
   signupEmail: string | null;
+  isLoading: boolean;
 }
 
 
@@ -18,6 +19,7 @@ interface AuthActions {
   clearSignupProgress: () => void;
   markEmailVerified: () => void;
   updateUser: (updatedUser: User) => void;
+  setLoading: (loading: boolean) => void;
 }
 
 
@@ -27,31 +29,33 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
   isVerified: false,
   signupInProgress: false,
   signupEmail: null,
+  isLoading: true,
   
   login: (user, showToast = true) => {
-    set((state) => { // Use functional update to access current state
+    set((state) => {
       const isUserVerified = user.isVerified;
-      
+  
       // Only clear signup progress if the user is now verified
       const newSignupInProgress = isUserVerified ? false : state.signupInProgress;
       const newSignupEmail = isUserVerified ? null : state.signupEmail;
-
+  
       return {
         user,
         isAuthenticated: true,
         isVerified: isUserVerified,
         signupInProgress: newSignupInProgress,
         signupEmail: newSignupEmail,
+        isLoading: false, // ✅ put it inside the returned object
       };
     });
+  
     if (showToast) {
       toast.success("Logged in successfully!", {
         description: `Welcome back, ${user.userName}!`,
       });
     }
-    // Removed direct calls to initializeCart and initializeWishlist from here.
-    // AuthInitializer will now explicitly call them after login.
   },
+  setLoading: (loading: boolean) => set({ isLoading: loading }),
   logout: (showToast=true,reason) => {
     // These calls are now safe here as they clear client-side state,
     // and AuthInitializer will re-initialize them on next successful login.
@@ -66,6 +70,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
       isVerified: false,
       signupInProgress: false,
       signupEmail: null,
+      isLoading: false,
     });
     if (showToast) {
       toast.info("You have been logged out.");
