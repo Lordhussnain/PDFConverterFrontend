@@ -82,7 +82,7 @@ const BlogPage = () => {
                   <UserCircle className="h-5 w-5" />
                   <span>{post.author} · {post.date}</span>
                 </div>
-                <Link to={`/blog/${post.slug}`} className="flex items-center text-primary font-semibold hover:underline">
+                <Link to={`/blogpost/${post.slug}`} className="flex items-center text-primary font-semibold hover:underline">
                   Read More <ArrowRight className="h-4 w-4 ml-1" />
                 </Link>
               </CardFooter>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,9 +6,10 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Eye, EyeOff, Phone } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { authApi } from '@/lib/api';
+
 import useAuthStore from '@/stores/authStore';
+import axios from 'axios';
+import { set } from 'date-fns';
 
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,39 +20,61 @@ const SignUpPage = () => {
     phoneNumber: '',
   });
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { login, setEmailForVerification } = useAuthStore();
+  const [isPending, setIsPending] = useState(false);
+  
+  const { isAuthenticated, isVerified, signupInProgress, signupEmail, setSignupProgress } = useAuthStore();
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: authApi.signup,
-    onSuccess: (data) => {
-      // Use the store's login action (shows toast)
-      login(data.user);
-      queryClient.invalidateQueries({ queryKey: ['checkAuth'] });
-      
-      if (data.user.isVerified) {
-        // If the user is already verified (e.g., backend auto-verifies), go straight to home
-        setEmailForVerification(null);
-        navigate('/', { replace: true });
-      } else {
-        // If verification is required, set email and navigate to verification page
-        setEmailForVerification(data.user.email);
-        navigate('/verify-email', { state: { from: '/signup' } });
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  useEffect(() => {
+    if (isAuthenticated && isVerified) {
+      navigate('/', { replace: true });
+      console.log("You are already logged in and verified.")
+      toast.info("You are already logged in and verified.");
+    } else if (signupInProgress && signupEmail) {
+      navigate('/verify-email', { state: { email: signupEmail }, replace: true });
+      console.log("Redirecting to email verification...");
+      toast.info("Please verify your email to continue.");
+    }
+  }, [navigate, isAuthenticated, isVerified, signupInProgress, signupEmail]);
+  
+  
+  
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    mutate(formData);
+   setIsPending(true);
+    try {
+       // Update auth store
+      const response = await axios.post('http://localhost:3001/api/v1/auth/signup',formData, {
+        withCredentials: true,
+      });
+
+      if (response.data.success) {
+        toast.success("Account created successfully!", {
+          description: "Please check your email to verify your account.",
+        });
+        setSignupProgress(formData.email);
+        navigate('/verify-email', { state: { email: formData.email }, replace: true });
+      }
+    } catch (error: any) {
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      if (axios.isAxiosError(error) && error.response) {
+        errorMessage = error.response.data.message || errorMessage;
+      }
+      
+      toast.error("Signup Failed", {
+        description: errorMessage,
+      });
+    }
+    finally {
+      setIsPending(false);
+    }
+
   };
 
   return (

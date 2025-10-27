@@ -15,7 +15,20 @@ const authApiInstance: AxiosInstance = axios.create({
   baseURL: AUTH_API_BASE_URL,
   withCredentials: true, // Crucial for receiving and sending cookies
 });
-
+// Function to set up interceptors, to be called after authStore is initialized
+export const setupApiInterceptors = (logoutFn: (showToast: boolean, reason?: string) => void) => {
+  apiInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      console.log("Axios Interceptor: Error caught", error.response); // Add this line
+      if (error.response?.status === 401) {
+        console.log("Axios Interceptor: 401 Unauthorized, calling logoutFn"); // Add this line
+        logoutFn(true);
+      }
+      return Promise.reject(error);
+    }
+  );
+};
 // 2. Helper to handle Axios responses and errors
 const handleAxiosResponse = (response: any) => {
   return response.data;

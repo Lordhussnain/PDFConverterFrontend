@@ -10,7 +10,6 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import BlogPage from './pages/BlogPage';
 import CareersPage from './pages/CareersPage';
-import { Blogpost1 } from './pages/BlogPost';
 import { Toaster } from "@/components/ui/sonner";
 import MainLayout from './components/layout/MainLayout';
 import BlogLayout from './components/layout/BlogLayout';
@@ -22,8 +21,8 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import ProfilePage from './pages/ProfilePage';
 import AuthInitializer from '@/components/AuthInitializer';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import PublicRoute from '@/components/auth/PublicRoute';
-import ConditionalRoute from '@/components/auth/ConditionalRoute';
+import DynamicBlogPostPage from './pages/DynamicBlogPostPage'; // Import the new component
+
 
 function App() {
   return (
@@ -41,20 +40,16 @@ function App() {
 
             {/* Public Routes (Auth forms) */}
             <Route element={<MainLayout />}>
-              <Route element={<PublicRoute />}>
+            
                 <Route path="/signup" element={<SignUpPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-              </Route>
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
+         
             </Route>
 
-            {/* Conditional Route for Email Verification */}
-            <Route element={<MainLayout />}>
-              <Route element={<ConditionalRoute />}>
-                <Route path="/verify-email" element={<VerifyEmailPage />} />
-              </Route>
-            </Route>
+            
 
             {/* General Public Routes (Accessible to all, including guests) */}
             <Route element={<MainLayout />}>
@@ -72,7 +67,8 @@ function App() {
 
             {/* Blog Layout Routes */}
             <Route element={<BlogLayout />}>
-              <Route path="/blogpost" element={<Blogpost1 />} />
+              {/* Dynamic route for individual blog posts */}
+              <Route path="/blogpost/:slug" element={<DynamicBlogPostPage />} />
             </Route>
           </Routes>
           <Toaster richColors />

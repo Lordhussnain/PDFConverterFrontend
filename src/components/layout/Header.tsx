@@ -28,7 +28,7 @@ const Header = () => {
   const queryClient = useQueryClient();
 
   const handleClientLogout = () => {
-    logout(); // Clears client state and shows toast
+    logout(true); // Clears client state and shows toast
     queryClient.clear();
   };
 

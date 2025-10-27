@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,7 @@ import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { authApi } from '@/lib/api';
 import useAuthStore from '@/stores/authStore';
+import axios from 'axios';
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,37 +19,58 @@ const LoginPage = () => {
   });
   const navigate = useNavigate();
   const location = useLocation();
-  const queryClient = useQueryClient();
-  const { login, setEmailForVerification } = useAuthStore();
-  const from = location.state?.from?.pathname || "/";
+  const [isPending, setIsPending] = useState(false);
+  const { login: loginUser, isAuthenticated } = useAuthStore();
+  const clearSignupProgress = useAuthStore((state) => state.clearSignupProgress);
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: authApi.login,
-    onSuccess: (data) => {
-      // Use the store's login action (shows toast)
-      login(data.user); 
-      queryClient.invalidateQueries({ queryKey: ['checkAuth'] });
-      
-      if (!data.user.isVerified) {
-        setEmailForVerification(data.user.email);
-        navigate('/verify-email', { state: { from: '/login' } });
-      } else {
-        navigate(from, { replace: true });
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+// Redirect if already authenticated
+useEffect(() => {
+  if (isAuthenticated) {
+    toast.info("You are already logged in.");
+    navigate('/', { replace: true });
+  }
+}, [isAuthenticated, navigate]);
+
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    mutate(formData);
+    
+    setIsPending(true);
+    try {
+      const response = await axios.post('http://localhost:3001/api/v1/auth/login', {
+        emailOrUsername: formData.emailOrUsername,
+        password: formData.password,
+      }, {
+        withCredentials: true,
+      });
+
+      if (response.data.success) {
+        loginUser(response.data.user);
+        clearSignupProgress();
+        toast.success("Logged in successfully!");
+        
+        navigate('/', { replace: true });
+      }
+    } catch (error: any) {
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      if (axios.isAxiosError(error) && error.response) {
+        errorMessage = error.response.data.message || errorMessage;
+      }
+      
+      toast.error("Login Failed", {
+        description: errorMessage,
+      });
+    }
+    finally {
+      setIsPending(false);
+    }
+   
   };
 
   return (

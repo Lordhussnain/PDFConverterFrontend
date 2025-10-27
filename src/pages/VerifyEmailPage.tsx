@@ -3,42 +3,57 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { MailCheck, RefreshCw } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { authApi } from '@/lib/api';
 import useAuthStore from '@/stores/authStore';
+import axios from 'axios';
 
 const VerifyEmailPage = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { emailForVerification, setUser, setEmailForVerification } = useAuthStore();
+  const location = useLocation();
+  const emailFromState = location.state?.email;
+  console.log(emailFromState);
+  const [isVerificationSuccessful, setIsVerificationSuccessful] = useState(false); // New state
+  const { isAuthenticated, isVerified, signupInProgress, signupEmail, login } = useAuthStore();
+  const email = emailFromState || signupEmail; // Prioritize state, then store
+  const [isResending, setIsResending] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
-  const { mutate: verifyMutate, isPending: isVerifying } = useMutation({
-    mutationFn: authApi.verifyEmail,
-    onSuccess: (data) => {
-      toast.success(data.message);
-      setUser(data.user);
-      setEmailForVerification(null);
-      queryClient.invalidateQueries({ queryKey: ['checkAuth'] });
-      navigate('/');
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
 
-  const { mutate: resendMutate, isPending: isResending } = useMutation({
-    mutationFn: authApi.resendVerificationCode,
-    onSuccess: (data) => {
-      toast.success(data.message);
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  // Restrict access and manage auth store state
+  useEffect(() => {
+    // If verification was successful, navigate to home. This takes precedence.
+    if (isVerificationSuccessful) {
+      navigate('/', { replace: true });
+      return;
+    }
+
+    // If already authenticated and verified (e.g., user refreshed after verification), go home.
+    if (isAuthenticated && isVerified) {
+      navigate('/', { replace: true });
+      toast.info("You are already logged in and verified.");
+      return;
+    }
+    
+    // If no email context and not in signup flow, redirect to signup.
+    // This handles cases where user lands on /verify-email without proper context.
+    if (!signupInProgress || !email) {
+      console.log("Please sign up to verify your email.")
+      toast.error("Access Denied", {
+        description: "Please sign up to verify your email.",
+      });
+      navigate('/signup', { replace: true });
+      return;
+    }
+  }, [email, navigate, isAuthenticated, isVerified, signupInProgress, isVerificationSuccessful]);
+
+  
+
+
 
   useEffect(() => {
     inputsRef.current[0]?.focus();
@@ -62,23 +77,75 @@ const VerifyEmailPage = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
     const code = otp.join('');
     if (code.length === 6) {
-      verifyMutate({ code });
+      try {
+        setIsVerifying(true);
+        const response = await axios.post('http://localhost:3001/api/v1/auth/verify-email', {
+          code:code
+        }, {
+          withCredentials: true,
+        });
+  
+        if (response.data.success) {
+          setIsVerificationSuccessful(true);
+          toast.success("Email verified successfully!", { description: "You can now access your account." });
+          login(response.data.user, false); // <-- suppress login toast (we already showed verify toast)
+          
+        }
+      } catch (error: any) {
+        let errorMessage = "An unexpected error occurred during verification. Please try again.";
+        if (axios.isAxiosError(error) && error.response) {
+          errorMessage = error.response.data.message || errorMessage;
+        }
+       
+        toast.error("Verification Failed", {
+          description: errorMessage,
+        });
+      }
+      finally {
+        setIsVerifying(false);
+      }
     } else {
       toast.error('Please enter a valid 6-digit code.');
     }
   };
 
-  const handleResend = () => {
-    if (emailForVerification) {
-      resendMutate({ email: emailForVerification });
-    } else {
-      toast.error("Could not find email to resend code. Please try logging in again.");
+  const handleResend = async () => {
+    if (!email) {
+      toast.error("Error", { description: "No email found to resend code." });
+      return;
     }
+    setIsResending(true);
+    
+    try {
+      const response = await authApi.resendVerificationCode({ email });
+      if (response.success) {
+        toast.success("Code Resent", {
+          description: "A new verification code has been sent to your email.",
+        });
+      }
+    } catch (error: any) {
+      let errorMessage = "Failed to resend code. Please try again.";
+      if (axios.isAxiosError(error) && error.response) {
+        errorMessage = error.response.data.message || errorMessage;
+      }
+      
+      toast.error("Resend Failed", {
+        description: errorMessage,
+      });
+    } finally {
+      setIsResending(false);
+    }
+   
   };
+    // If email is not present or already verified, the useEffect will handle redirection, so we don't render the form
+    if (!email && !signupInProgress) { // Ensure we don't render if no context
+      return null; 
+    }
 
   return (
     <main className="container mx-auto px-4 py-12">
@@ -94,7 +161,7 @@ const VerifyEmailPage = () => {
           </div>
           <h1 className="text-3xl font-bold mb-2">Verify Your Email</h1>
           <p className="text-muted-foreground">
-            We've sent a 6-digit code to {emailForVerification}. Please enter it below.
+            We've sent a 6-digit code to {email}. Please enter it below.
           </p>
         </div>
 
@@ -116,7 +183,7 @@ const VerifyEmailPage = () => {
             ))}
           </div>
 
-          <Button type="submit" className="w-full" size="lg" disabled={isVerifying}>
+          <Button type="submit" className="w-full" size="lg" disabled={isVerifying || isResending}>
             {isVerifying ? 'Verifying...' : 'Verify Email'}
           </Button>
         </form>
